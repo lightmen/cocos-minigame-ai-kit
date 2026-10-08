@@ -1,0 +1,7 @@
+{
+  "$comment": "当前正在进行的 feature。Standard / Heavy 开工时第一步就改这里。Lite 不改。新玩法还要先有同目录的 gdd.md。",
+  "feature_directory": "",
+  "feature_name": "",
+  "track": "",
+  "created_at": ""
+}

@@ -1,0 +1,59 @@
+---
+description: Cocos Creator 3.8 客户端 TypeScript 约定：平台适配、节点引用、帧循环
+globs: assets/scripts/**/*.ts
+alwaysApply: false
+---
+
+# Cocos 客户端约定
+
+## 平台 API 走适配层
+
+`platform/` 以外禁止出现 `wx.`、`window.`、`document.`、`localStorage`。
+
+```typescript
+// ❌ BAD — 业务代码直接调微信 API，编辑器里跑不起来
+wx.setStorageSync('score', score);
+
+// ✅ GOOD — 走 platform 层，非微信环境有降级实现
+import { storage } from '../platform/storage';
+await storage.set('score', score);
+```
+
+## 节点引用用 @property
+
+```typescript
+// ❌ BAD — 预制体结构一改，运行时才报错
+const label = find('Canvas/UI/HUD/ScoreLabel')!.getComponent(Label)!;
+
+// ✅ GOOD — 引用丢失在编辑器里就能看见
+@property(Label)
+scoreLabel: Label = null!;
+```
+
+## 帧循环不产生垃圾
+
+`update` / `lateUpdate` 及其调用链里禁止 new 对象、数组/对象字面量、字符串拼接、闭包分配。
+
+```typescript
+// ❌ BAD — 每帧一个 Vec3 + 一个字符串
+update(dt: number) {
+    this.node.setPosition(new Vec3(x, y, 0));
+    this.label.string = `HP: ${hp}/${max}`;
+}
+
+// ✅ GOOD — 预分配复用，文本只在变化时刷新
+private _pos = new Vec3();
+update(dt: number) {
+    this._pos.set(x, y, 0);
+    this.node.setPosition(this._pos);
+    if (hp !== this._lastHp) { this._lastHp = hp; this._refreshHpText(); }
+}
+```
+
+子弹、特效、飘字这类频繁创建销毁的节点走对象池，不要 `instantiate` / `destroy`。
+
+## 其他硬禁止
+
+- `net/generated/` 下的协议生成物禁止手改，回服务端仓改源头再同步。
+- 不用 `as any` / `@ts-ignore` 糊类型错误。
+- 动态 `load` / `loadBundle` 必须有对应的释放路径。

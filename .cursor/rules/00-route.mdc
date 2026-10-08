@@ -1,0 +1,32 @@
+---
+description: 开工先选轨——Lite / Standard / Heavy 三轨分流，决定要不要写 spec
+alwaysApply: true
+---
+
+# 先选轨，再动手
+
+拿到任何任务，第一步用 `game-route` 出选轨卡。判定从上往下，命中即停；拿不准选更重的一档。
+
+| 轨道 | 命中条件 | 制品 |
+|-|-|-|
+| **Heavy** | 引擎/渲染方案变更、包体与分包结构调整、战斗同步方案变更、客户端与服务端协议需同时改 | Standard 全套 + `adr.md` |
+| **Standard** | 新界面/新玩法系统、对接新协议、新增 Asset Bundle、新增存档结构、需要策划口径的新规则 | `specs/<NNN>-name/` 的 spec + plan + tasks |
+| **Lite** | 以上都不是：修 bug、日志、UI 文案、数值微调、已有组件内小改 | 变更说明 + 可执行验证。**不建 specs/** |
+
+新玩法、新的玩家循环：先 `game-gdd`，人确认 `gdd.md` 之后才写 spec。
+
+## 两个最容易踩的错
+
+**对 Lite 任务写 spec。** 修一行日志不需要 spec 目录。它仍然要验证。
+
+**Standard 一次做完整个功能。** `tasks.md` 拆出 `T001`、`T002`…… 每轮只实现被点名的那一个。
+
+## Lite 的硬边界
+
+出现下面任一项立刻升 Standard：新增/修改协议字段、新增 Asset Bundle、改存档结构、新增界面或玩法系统、新增资源进 `assets/resources/`。
+
+## 收尾
+
+每次改动结束前跑 `game-verify`。涉及资源或包体的追加 `game-build`。改了场景、预制体或看得见的表现，走 `game-mcp`。"后续观察"不算验证。
+
+细则见 `AGENTS.md` 与 `.specify/memory/constitution.md`。

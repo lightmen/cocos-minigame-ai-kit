@@ -1,0 +1,39 @@
+---
+description: core 层是纯 TypeScript 的战斗规则层，禁止依赖 Cocos 引擎
+globs: assets/scripts/core/**/*.ts
+alwaysApply: false
+---
+
+# core/ — 纯逻辑层
+
+这是本仓库**唯一能被单测覆盖的层**。所有影响战斗结果的规则都必须落在这里：伤害计算、状态机、技能判定、同步与回滚逻辑、数值公式。
+
+## 禁止 import 'cc'
+
+```typescript
+// ❌ BAD — 一旦依赖引擎，这段逻辑就只能靠真机验证
+import { Vec3, Node } from 'cc';
+export function calcDamage(attacker: Node, target: Node): number { ... }
+
+// ✅ GOOD — 纯数据进、纯数据出，可以直接 vitest 跑
+export interface CombatUnit { atk: number; def: number; buffs: BuffId[] }
+export function calcDamage(attacker: CombatUnit, target: CombatUnit): number { ... }
+```
+
+需要向量运算就在 `core/math/` 里自己实现，不要为了省事引 `cc.Vec3`。
+
+## 确定性
+
+对战类游戏的同步依赖确定性。`core/` 里禁止：
+
+- `Math.random()` —— 用注入的种子随机 `IRandom`
+- `Date.now()` / `performance.now()` —— 时间由外部以参数传入
+- 遍历 `Object.keys` 后依赖其顺序做逻辑分支
+
+同样的输入必须得到同样的输出，否则回放和断线重连都对不上。
+
+## 每个规则配一个测试
+
+新增或修改 `core/` 下的规则，必须同步新增/更新 `tests/core/` 下对应的测试用例，覆盖正常路径和边界值（0、负数、上限、空集合）。
+
+这是宪法原则 3 和 9 的落点：`core/` 没有测试，等于整个战斗系统没有测试。
